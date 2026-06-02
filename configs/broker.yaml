@@ -1,0 +1,33 @@
+# Broker Configuration - AI Trading Platform
+
+broker: alpaca
+mode: paper
+
+alpaca:
+  base_url: "https://paper-api.alpaca.markets"
+  data_url: "https://data.alpaca.markets"
+  order_type: market
+  time_in_force: day
+  retry_attempts: 3
+  retry_delay_seconds: 5
+  connection_timeout: 30
+  read_timeout: 60
+
+order_defaults:
+  fractional: false
+  extended_hours: false
+  notional: false
+
+# Slippage simulation per paper trading
+slippage_bps: 5
+commission_per_share: 0.0
+min_commission: 0.0
+
+# Future: Interactive Brokers
+ibkr:
+  enabled: false
+  host: 127.0.0.1
+  port: 7497
+  client_id: 1
+  account: ""
+  paper: true
