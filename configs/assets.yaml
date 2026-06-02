@@ -1,0 +1,41 @@
+# Asset universe - AI Trading Platform
+
+symbols:
+  - symbol: AAPL
+    name: Apple Inc.
+    sector: Technology
+    weight: 0.30
+    min_volume: 10000000
+
+  - symbol: MSFT
+    name: Microsoft Corporation
+    sector: Technology
+    weight: 0.25
+    min_volume: 8000000
+
+  - symbol: NVDA
+    name: NVIDIA Corporation
+    sector: Technology
+    weight: 0.25
+    min_volume: 5000000
+
+  - symbol: SPY
+    name: SPDR S&P 500 ETF Trust
+    sector: ETF
+    weight: 0.20
+    min_volume: 50000000
+
+market: us_equities
+resolution: 1d
+timezone: America/New_York
+trading_mode: paper
+
+market_hours:
+  open: "09:30"
+  close: "16:00"
+  pre_market: "04:00"
+  after_hours: "20:00"
+
+historical_lookback_days: 90
+news_lookback_hours: 24
+sentiment_lookback_hours: 48
