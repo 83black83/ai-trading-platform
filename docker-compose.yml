@@ -1,0 +1,128 @@
+version: "3.9"
+
+services:
+  postgres:
+    image: postgres:15-alpine
+    container_name: trading_postgres
+    restart: unless-stopped
+    environment:
+      POSTGRES_USER: ${POSTGRES_USER:-trading}
+      POSTGRES_PASSWORD: ${POSTGRES_PASSWORD:-trading_secret}
+      POSTGRES_DB: ${POSTGRES_DB:-trading_db}
+    volumes:
+      - postgres_data:/var/lib/postgresql/data
+      - ./infra/sql/init.sql:/docker-entrypoint-initdb.d/init.sql
+    ports:
+      - "5432:5432"
+    networks:
+      - trading_net
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U trading"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+
+  redis:
+    image: redis:7-alpine
+    container_name: trading_redis
+    restart: unless-stopped
+    ports:
+      - "6379:6379"
+    networks:
+      - trading_net
+    healthcheck:
+      test: ["CMD", "redis-cli", "ping"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+
+  api:
+    build:
+      context: .
+      dockerfile: apps/api/Dockerfile
+    container_name: trading_api
+    restart: unless-stopped
+    env_file: .env
+    ports:
+      - "8000:8000"
+    depends_on:
+      postgres:
+        condition: service_healthy
+      redis:
+        condition: service_healthy
+    networks:
+      - trading_net
+    volumes:
+      - ./configs:/app/configs:ro
+      - ./logs:/app/logs
+
+  worker_signals:
+    build:
+      context: .
+      dockerfile: apps/worker-signals/Dockerfile
+    container_name: trading_signals
+    restart: unless-stopped
+    env_file: .env
+    depends_on:
+      postgres:
+        condition: service_healthy
+      redis:
+        condition: service_healthy
+    networks:
+      - trading_net
+    volumes:
+      - ./configs:/app/configs:ro
+      - ./logs:/app/logs
+
+  worker_execution:
+    build:
+      context: .
+      dockerfile: apps/worker-execution/Dockerfile
+    container_name: trading_execution
+    restart: unless-stopped
+    env_file: .env
+    depends_on:
+      postgres:
+        condition: service_healthy
+      redis:
+        condition: service_healthy
+    networks:
+      - trading_net
+    volumes:
+      - ./configs:/app/configs:ro
+      - ./logs:/app/logs
+
+  worker_notify:
+    build:
+      context: .
+      dockerfile: apps/worker-notify/Dockerfile
+    container_name: trading_notify
+    restart: unless-stopped
+    env_file: .env
+    depends_on:
+      redis:
+        condition: service_healthy
+    networks:
+      - trading_net
+    volumes:
+      - ./configs:/app/configs:ro
+
+  dashboard:
+    build:
+      context: .
+      dockerfile: apps/dashboard/Dockerfile
+    container_name: trading_dashboard
+    restart: unless-stopped
+    ports:
+      - "3000:3000"
+    depends_on:
+      - api
+    networks:
+      - trading_net
+
+volumes:
+  postgres_data:
+
+networks:
+  trading_net:
+    driver: bridge
