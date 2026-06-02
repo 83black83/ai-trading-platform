@@ -114,8 +114,7 @@ services:
     container_name: trading_dashboard
     restart: unless-stopped
     ports:
-      - "3000:3000"
-    depends_on:
+"3000:80"    depends_on:
       - api
     networks:
       - trading_net
